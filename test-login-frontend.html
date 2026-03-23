@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend Login Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .result { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>GuardianByte Frontend Login Test</h1>
+    
+    <h2>Test 1: Backend API Direct</h2>
+    <button onclick="testBackendDirect()">Test Backend API</button>
+    <div id="backend-result" class="result"></div>
+    
+    <h2>Test 2: Frontend Login Simulation</h2>
+    <button onclick="testFrontendLogin()">Test Frontend Login</button>
+    <div id="frontend-result" class="result"></div>
+    
+    <h2>Test 3: CORS Check</h2>
+    <button onclick="testCORS()">Test CORS</button>
+    <div id="cors-result" class="result"></div>
+
+    <script>
+        async function testBackendDirect() {
+            const resultDiv = document.getElementById('backend-result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('http://localhost:5001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'raj@example.com',
+                        password: 'password123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    <h3>✅ Backend API Working</h3>
+                    <p>Status: ${response.status}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Backend API Error</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+        
+        async function testFrontendLogin() {
+            const resultDiv = document.getElementById('frontend-result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                // Simulate frontend login using same API
+                const response = await fetch('http://localhost:5001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': 'http://localhost:3000'
+                    },
+                    body: JSON.stringify({
+                        email: 'raj@example.com',
+                        password: 'password123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Frontend Login Simulation Successful</h3>
+                        <p>User: ${data.data.user.name}</p>
+                        <p>Role: ${data.data.user.role}</p>
+                        <p>Zone: ${data.data.user.zone}</p>
+                        <p>Token: ${data.data.token.substring(0, 50)}...</p>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ Login Failed</h3>
+                        <p>${data.message}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Frontend Login Error</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+        
+        async function testCORS() {
+            const resultDiv = document.getElementById('cors-result');
+            resultDiv.innerHTML = 'Testing CORS...';
+            
+            try {
+                const response = await fetch('http://localhost:5001/api/health', {
+                    method: 'GET',
+                    headers: {
+                        'Origin': 'http://localhost:3000'
+                    }
+                });
+                
+                const data = await response.json();
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers')
+                };
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    <h3>✅ CORS Test Successful</h3>
+                    <p>Status: ${response.status}</p>
+                    <p>CORS Headers:</p>
+                    <pre>${JSON.stringify(corsHeaders, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ CORS Error</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+        
+        // Auto-run tests
+        window.onload = function() {
+            setTimeout(() => testBackendDirect(), 500);
+            setTimeout(() => testFrontendLogin(), 1000);
+            setTimeout(() => testCORS(), 1500);
+        };
+    </script>
+</body>
+</html>
